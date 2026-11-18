@@ -113,7 +113,7 @@ function Cart() {
 
                                 <div className="cart-item-subtotal">
                                     ₹{(
-                                        item.price * item.quantity
+                                        Number(item.price) * item.quantity
                                     ).toLocaleString('en-IN')}
                                 </div>
 
@@ -130,7 +130,7 @@ function Cart() {
                         <div className="summary-row">
                             <span>Subtotal</span>
                             <span>
-                                ₹{cartTotal.toLocaleString('en-IN')}
+                                ₹{Number(cartTotal).toLocaleString('en-IN')}
                             </span>
                         </div>
 
@@ -144,7 +144,7 @@ function Cart() {
                         <div className="summary-total">
                             <span>Total</span>
                             <span>
-                                ₹{cartTotal.toLocaleString('en-IN')}
+                                ₹{Number(cartTotal).toLocaleString('en-IN')}
                             </span>
                         </div>
 

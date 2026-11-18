@@ -8,7 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import BecomeSeller from './pages/BecomeSeller';
 import VendorDashboard from './pages/VendorDashboard';
-import Cart from './pages/Cart';
+import Cart from './pages/cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
 import ProductReviews from './pages/ProductReviews';
