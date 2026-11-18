@@ -2537,3 +2537,15 @@ img {
 .payment-status.pending {
     color: #b86f50;
 }
+.nav-explore-button {
+    background: none;
+    border: none;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+}
+
+.nav-explore-button:hover {
+    color: #b86f50;
+}

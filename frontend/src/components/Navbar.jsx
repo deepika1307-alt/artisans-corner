@@ -5,7 +5,6 @@ import { useCart } from '../context/CartContext';
 function Navbar() {
     const { user, logout } = useAuth();
     const { cartCount } = useCart();
-
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -13,31 +12,42 @@ function Navbar() {
         navigate('/');
     };
 
+    const handleExplore = () => {
+        if (window.location.pathname !== '/') {
+            navigate('/#explore');
+        } else {
+            document.getElementById('explore')?.scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+    };
+
     return (
         <nav className="navbar">
 
-            {/* LOGO */}
             <Link to="/" className="navbar-logo">
                 <span className="logo-icon">✿</span>
                 <span>Artisan's Corner</span>
             </Link>
 
-            {/* NAVIGATION LINKS */}
             <div className="navbar-links">
                 <Link to="/">Home</Link>
-                <Link to="/#explore">Explore</Link>
+
+                <button
+                    type="button"
+                    onClick={handleExplore}
+                    className="nav-explore-button"
+                >
+                    Explore
+                </button>
 
                 {user && (
-                    <Link to="/my-orders">
-                        My Orders
-                    </Link>
+                    <Link to="/my-orders">My Orders</Link>
                 )}
             </div>
 
-            {/* NAVIGATION ACTIONS */}
             <div className="navbar-actions">
 
-                {/* CART */}
                 <Link to="/cart" className="nav-cart">
                     🛒 Cart
                     <span className="cart-count">
@@ -48,7 +58,7 @@ function Navbar() {
                 {user ? (
                     <>
                         {user.roles?.includes('seller') ||
-                         user.roles?.includes('admin') ? (
+                        user.roles?.includes('admin') ? (
                             <Link
                                 to="/vendor-dashboard"
                                 className="nav-dashboard"
@@ -57,7 +67,7 @@ function Navbar() {
                             </Link>
                         ) : (
                             <Link
-                                to="/register"
+                                to="/become-seller"
                                 className="nav-seller"
                             >
                                 Become a Seller
@@ -84,7 +94,6 @@ function Navbar() {
                 )}
 
             </div>
-
         </nav>
     );
 }

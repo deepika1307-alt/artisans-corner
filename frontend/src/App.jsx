@@ -6,6 +6,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import BecomeSeller from './pages/BecomeSeller';
 import VendorDashboard from './pages/VendorDashboard';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
@@ -38,14 +39,34 @@ function App() {
 
             <Routes>
 
-                <Route path="/" element={<Home />} />
+                {/* Home */}
+                <Route
+                    path="/"
+                    element={<Home />}
+                />
 
-                <Route path="/login" element={<Login />} />
+                {/* Authentication */}
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
-                <Route path="/register" element={<Register />} />
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
 
-                <Route path="/cart" element={<Cart />} />
+                {/* Seller Onboarding */}
+                <Route
+                    path="/become-seller"
+                    element={
+                        <ProtectedRoute>
+                            <BecomeSeller />
+                        </ProtectedRoute>
+                    }
+                />
 
+                {/* Vendor Dashboard */}
                 <Route
                     path="/vendor-dashboard"
                     element={
@@ -55,6 +76,13 @@ function App() {
                     }
                 />
 
+                {/* Shopping Cart */}
+                <Route
+                    path="/cart"
+                    element={<Cart />}
+                />
+
+                {/* Checkout */}
                 <Route
                     path="/checkout"
                     element={
@@ -64,6 +92,7 @@ function App() {
                     }
                 />
 
+                {/* My Orders */}
                 <Route
                     path="/my-orders"
                     element={
