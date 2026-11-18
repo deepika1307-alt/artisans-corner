@@ -34,11 +34,12 @@ function BecomeSeller() {
 
             alert('Your store has been created successfully!');
 
-            // Refresh login to receive the updated seller role
+            // Remove old login details to refresh the updated seller role
             localStorage.removeItem('token');
             localStorage.removeItem('user');
 
-            window.location.href = '/login';
+            // Navigate using React Router instead of reloading the page
+            navigate('/login');
 
         } catch (err) {
             setError(
@@ -110,7 +111,10 @@ function BecomeSeller() {
                         className="auth-submit"
                         disabled={loading}
                     >
-                        {loading ? 'Creating Store...' : 'Create My Store'}
+                        {loading
+                            ? 'Creating Store...'
+                            : 'Create My Store'
+                        }
                     </button>
 
                 </form>
