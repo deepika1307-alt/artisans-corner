@@ -9,9 +9,34 @@ function Home() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [message, setMessage] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('All');
 
     const { addToCart } = useCart();
     const { user } = useAuth();
+
+    // CATEGORY DETAILS
+    const categories = [
+        {
+            name: 'Handmade Jewellery',
+            value: 'Jewellery',
+            icon: '💍'
+        },
+        {
+            name: 'Home Decor',
+            value: 'Home Decor',
+            icon: '🏺'
+        },
+        {
+            name: 'Art & Paintings',
+            value: 'Art',
+            icon: '🎨'
+        },
+        {
+            name: 'Handmade Gifts',
+            value: 'Gifts',
+            icon: '🎁'
+        }
+    ];
 
     // FETCH PUBLIC PRODUCTS
     useEffect(() => {
@@ -32,6 +57,24 @@ function Home() {
         fetchProducts();
     }, []);
 
+    // FILTER PRODUCTS BY CATEGORY
+    const filteredProducts = selectedCategory === 'All'
+        ? products
+        : products.filter(
+            product =>
+                product.category?.toLowerCase() ===
+                selectedCategory.toLowerCase()
+        );
+
+    // HANDLE CATEGORY CLICK
+    const handleCategoryClick = (category) => {
+        setSelectedCategory(category);
+
+        document.getElementById('explore')?.scrollIntoView({
+            behavior: 'smooth'
+        });
+    };
+
     // ADD PRODUCT TO CART
     const handleAddToCart = (product) => {
         addToCart(product);
@@ -49,6 +92,7 @@ function Home() {
             {/* HERO SECTION */}
 
             <section className="hero-section">
+
                 <div className="hero-content">
 
                     <p className="hero-tag">
@@ -75,6 +119,7 @@ function Home() {
                 <div className="hero-decoration">
                     ✿
                 </div>
+
             </section>
 
             {/* CATEGORIES */}
@@ -88,25 +133,28 @@ function Home() {
 
                 <div className="categories-grid">
 
-                    <div className="category-card">
-                        <span>💍</span>
-                        <h3>Handmade Jewellery</h3>
-                    </div>
+                    {categories.map((category) => (
 
-                    <div className="category-card">
-                        <span>🏺</span>
-                        <h3>Home Decor</h3>
-                    </div>
+                        <button
+                            type="button"
+                            key={category.value}
+                            className={`category-card ${
+                                selectedCategory === category.value
+                                    ? 'active'
+                                    : ''
+                            }`}
+                            onClick={() =>
+                                handleCategoryClick(category.value)
+                            }
+                        >
 
-                    <div className="category-card">
-                        <span>🎨</span>
-                        <h3>Art & Paintings</h3>
-                    </div>
+                            <span>{category.icon}</span>
 
-                    <div className="category-card">
-                        <span>🎁</span>
-                        <h3>Handmade Gifts</h3>
-                    </div>
+                            <h3>{category.name}</h3>
+
+                        </button>
+
+                    ))}
 
                 </div>
 
@@ -117,8 +165,31 @@ function Home() {
             <section className="featured-section" id="explore">
 
                 <div className="section-heading">
+
                     <p>HANDPICKED FOR YOU</p>
-                    <h2>Discover Handmade Treasures</h2>
+
+                    <h2>
+                        {selectedCategory === 'All'
+                            ? 'Discover Handmade Treasures'
+                            : categories.find(
+                                category =>
+                                    category.value === selectedCategory
+                            )?.name || 'Discover Handmade Treasures'
+                        }
+                    </h2>
+
+                    {/* ALL PRODUCTS BUTTON */}
+
+                    {selectedCategory !== 'All' && (
+                        <button
+                            type="button"
+                            className="all-products-button"
+                            onClick={() => setSelectedCategory('All')}
+                        >
+                            ← View All Products
+                        </button>
+                    )}
+
                 </div>
 
                 {message && (
@@ -139,21 +210,43 @@ function Home() {
                         {error}
                     </div>
 
-                ) : products.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
 
                     <div className="dashboard-empty">
+
                         <span>✿</span>
-                        <h3>No products available yet.</h3>
+
+                        <h3>
+                            {selectedCategory === 'All'
+                                ? 'No products available yet.'
+                                : 'No products found in this category.'
+                            }
+                        </h3>
+
                         <p>
-                            Check back soon for beautiful handmade creations!
+                            {selectedCategory === 'All'
+                                ? 'Check back soon for beautiful handmade creations!'
+                                : 'Explore other categories to discover beautiful creations.'
+                            }
                         </p>
+
+                        {selectedCategory !== 'All' && (
+                            <button
+                                type="button"
+                                className="all-products-button"
+                                onClick={() => setSelectedCategory('All')}
+                            >
+                                Explore All Products
+                            </button>
+                        )}
+
                     </div>
 
                 ) : (
 
                     <div className="products-grid">
 
-                        {products.map((product) => (
+                        {filteredProducts.map((product) => (
 
                             <article
                                 className="product-card"
@@ -222,8 +315,6 @@ function Home() {
                                             : 'Add to Cart 🛒'}
                                     </button>
 
-                                    {/* VIEW REVIEWS */}
-
                                     <Link
                                         to={`/products/${product._id}/reviews`}
                                         className="view-reviews-button"
@@ -248,6 +339,7 @@ function Home() {
             <section className="seller-section">
 
                 <div>
+
                     <p className="seller-tag">
                         SHARE YOUR CREATIVITY
                     </p>
@@ -260,9 +352,13 @@ function Home() {
                         Join our community of talented artisans
                         and share your creations with the world.
                     </p>
+
                 </div>
 
-                <Link to="/register" className="seller-button">
+                <Link
+                    to={user ? '/become-seller' : '/register'}
+                    className="seller-button"
+                >
                     Start Selling
                 </Link>
 

@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 const API = axios.create({
-    baseURL: 'http://localhost:5000/api',
+    baseURL: import.meta.env.VITE_API_URL,
     timeout: 30000
 });
 
-// Automatically attach JWT token to protected requests
+// Automatically attach JWT token
 API.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
@@ -14,19 +14,16 @@ API.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         }
 
-        // Let the browser set the multipart boundary for FormData
         if (config.data instanceof FormData) {
             delete config.headers['Content-Type'];
         }
 
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
-// Handle API errors consistently
+// Handle API errors
 API.interceptors.response.use(
     (response) => response,
     (error) => {
