@@ -6,8 +6,6 @@ function MyOrders() {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [payingOrder, setPayingOrder] = useState(null);
-    const [paymentMessage, setPaymentMessage] = useState('');
 
     const fetchOrders = async () => {
         try {
@@ -35,44 +33,6 @@ function MyOrders() {
         fetchOrders();
     }, []);
 
-    // ========================================
-    // SIMULATED PAYMENT
-    // DEMO PURPOSES ONLY
-    // ========================================
-
-    const handlePayment = async (orderId) => {
-        const confirmed = window.confirm(
-            'This is a simulated demo payment. No real money will be charged. Continue?'
-        );
-
-        if (!confirmed) return;
-
-        try {
-            setPayingOrder(orderId);
-            setPaymentMessage('');
-            setError('');
-
-            const response = await API.post(
-                `/orders/${orderId}/simulate-payment`
-            );
-
-            setPaymentMessage(
-                response.data.message || 'Demo payment successful!'
-            );
-
-            await fetchOrders();
-
-        } catch (error) {
-            setError(
-                error.response?.data?.message ||
-                'Demo payment failed.'
-            );
-
-        } finally {
-            setPayingOrder(null);
-        }
-    };
-
     if (loading) {
         return (
             <div className="orders-loading">
@@ -99,14 +59,10 @@ function MyOrders() {
             <div className="orders-heading">
                 <p>YOUR PURCHASES</p>
                 <h1>My Orders 📦</h1>
-                <span>Keep track of your handmade treasures.</span>
+                <span>
+                    Keep track of your handmade treasures.
+                </span>
             </div>
-
-            {paymentMessage && (
-                <div className="payment-success-message">
-                    ✓ {paymentMessage}
-                </div>
-            )}
 
             {error && (
                 <div className="payment-error-message">
@@ -197,7 +153,6 @@ function MyOrders() {
                                     <strong className={`payment-status ${order.paymentStatus}`}>
                                         {order.paymentStatus}
                                     </strong>
-
                                 </div>
 
                                 <div>
@@ -212,20 +167,22 @@ function MyOrders() {
                             </div>
 
                             {order.paymentStatus === 'pending' && (
-                                <button
-                                    className="pay-now-button"
-                                    onClick={() => handlePayment(order._id)}
-                                    disabled={payingOrder === order._id}
-                                >
-                                    {payingOrder === order._id
-                                        ? 'Processing...'
-                                        : 'Pay Now (Demo)'}
-                                </button>
+                                <div className="payment-pending-message">
+                                    Payment integration is not available
+                                    in this demo. Your order is saved as
+                                    pending. No payment has been collected.
+                                </div>
                             )}
 
                             {order.paymentStatus === 'paid' && (
                                 <div className="payment-completed">
                                     ✓ Payment Completed
+                                </div>
+                            )}
+
+                            {order.paymentStatus === 'failed' && (
+                                <div className="payment-error-message">
+                                    Payment was not completed.
                                 </div>
                             )}
 
