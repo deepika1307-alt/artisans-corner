@@ -8,6 +8,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import BecomeSeller from './pages/BecomeSeller';
 import VendorDashboard from './pages/VendorDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Cart from './pages/cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
@@ -21,12 +22,27 @@ import './App.css';
 function ProtectedRoute({ children }) {
     const { user, loading } = useAuth();
 
-    if (loading) {
-        return <h2>Loading...</h2>;
-    }
+    if (loading) return <h2>Loading...</h2>;
 
     if (!user) {
         return <Navigate to="/login" replace />;
+    }
+
+    return children;
+}
+
+// Admin-only Route
+function AdminRoute({ children }) {
+    const { user, loading } = useAuth();
+
+    if (loading) return <h2>Loading...</h2>;
+
+    if (!user) {
+        return <Navigate to="/login" replace />;
+    }
+
+    if (!user.roles?.includes('admin')) {
+        return <Navigate to="/" replace />;
     }
 
     return children;
@@ -38,25 +54,11 @@ function App() {
             <Navbar />
 
             <Routes>
+                <Route path="/" element={<Home />} />
 
-                {/* Home */}
-                <Route
-                    path="/"
-                    element={<Home />}
-                />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
-                {/* Authentication */}
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
-
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
-
-                {/* Seller Onboarding */}
                 <Route
                     path="/become-seller"
                     element={
@@ -66,7 +68,6 @@ function App() {
                     }
                 />
 
-                {/* Vendor Dashboard */}
                 <Route
                     path="/vendor-dashboard"
                     element={
@@ -76,13 +77,17 @@ function App() {
                     }
                 />
 
-                {/* Shopping Cart */}
                 <Route
-                    path="/cart"
-                    element={<Cart />}
+                    path="/admin-dashboard"
+                    element={
+                        <AdminRoute>
+                            <AdminDashboard />
+                        </AdminRoute>
+                    }
                 />
 
-                {/* Checkout */}
+                <Route path="/cart" element={<Cart />} />
+
                 <Route
                     path="/checkout"
                     element={
@@ -92,7 +97,6 @@ function App() {
                     }
                 />
 
-                {/* My Orders */}
                 <Route
                     path="/my-orders"
                     element={
@@ -102,12 +106,10 @@ function App() {
                     }
                 />
 
-                {/* Product Reviews */}
                 <Route
                     path="/products/:productId/reviews"
                     element={<ProductReviews />}
                 />
-
             </Routes>
 
             <Footer />

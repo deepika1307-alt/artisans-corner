@@ -50,26 +50,21 @@ function Navbar() {
 
                 <Link to="/cart" className="nav-cart">
                     🛒 Cart
-                    <span className="cart-count">
-                        {cartCount}
-                    </span>
+                    <span className="cart-count">{cartCount}</span>
                 </Link>
 
                 {user ? (
                     <>
-                        {user.roles?.includes('seller') ||
-                        user.roles?.includes('admin') ? (
-                            <Link
-                                to="/vendor-dashboard"
-                                className="nav-dashboard"
-                            >
-                                Dashboard
+                        {user.roles?.includes('admin') ? (
+                            <Link to="/admin-dashboard" className="nav-dashboard">
+                                Admin Dashboard
+                            </Link>
+                        ) : user.roles?.includes('seller') ? (
+                            <Link to="/vendor-dashboard" className="nav-dashboard">
+                                Vendor Dashboard
                             </Link>
                         ) : (
-                            <Link
-                                to="/become-seller"
-                                className="nav-seller"
-                            >
+                            <Link to="/become-seller" className="nav-seller">
                                 Become a Seller
                             </Link>
                         )}
