@@ -43,27 +43,37 @@ function Checkout() {
         quantity: item.quantity
       }));
 
-      // Step 1: Create the order
+      // Step 1: Create order
       const orderResponse = await API.post('/orders', {
         items: orderItems,
         shippingAddress: formData
       });
 
       const order = orderResponse.data.order || orderResponse.data;
-      const orderId = order._id;
 
-      if (!orderId) {
+      if (!order._id) {
         throw new Error('Order was created, but its ID was not returned.');
       }
 
-      // Step 2: Process demo payment
-      await API.post(`/orders/${orderId}/simulate-payment`);
+      // Step 2: Simulate payment only during local development
+      if (import.meta.env.DEV) {
+        await API.post(`/orders/${order._id}/simulate-payment`);
 
-      // Step 3: Clear cart only after successful demo payment
+        alert('Demo payment successful! Your order is confirmed.');
+      } else {
+        // Production: No real payment integration is configured.
+        // Keep the order pending instead of marking it as paid.
+
+        alert(
+          'Your order has been placed successfully! ' +
+          'Payment is currently pending. No money has been collected.'
+        );
+      }
+
+      // Step 3: Clear cart after successful order creation
       clearCart();
 
-      alert('Demo payment successful! Your order is confirmed.');
-
+      // Step 4: Navigate to order history
       navigate('/my-orders');
 
     } catch (error) {
@@ -163,7 +173,11 @@ function Checkout() {
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Processing...' : 'Place Order & Pay (Demo)'}
+            {loading
+              ? 'Processing...'
+              : import.meta.env.DEV
+                ? 'Place Order & Pay (Demo)'
+                : 'Place Order'}
           </button>
         </form>
 
@@ -175,6 +189,7 @@ function Checkout() {
               <span>
                 {item.productName} × {item.quantity}
               </span>
+
               <span>
                 ₹{item.price * item.quantity}
               </span>
@@ -189,7 +204,9 @@ function Checkout() {
           </div>
 
           <p className="payment-note">
-            Demo payment only. No real money will be charged.
+            {import.meta.env.DEV
+              ? 'Demo payment only. No real money will be charged.'
+              : 'Payment integration is not available in this demo. Orders will remain pending.'}
           </p>
         </div>
       </div>
