@@ -5,6 +5,7 @@ const {
     createProduct,
     getMyProducts,
     getAllProducts,
+    getProductById,
     updateProduct,
     deleteProduct
 } = require('../controllers/productController');
@@ -17,20 +18,24 @@ const {
 // PUBLIC: GET ALL PRODUCTS
 router.get('/', getAllProducts);
 
+// SELLER: GET MY PRODUCTS
+// Keep this BEFORE /:id
+router.get(
+    '/my-products',
+    protect,
+    authorize('seller', 'admin'),
+    getMyProducts
+);
+
+// PUBLIC: GET SINGLE PRODUCT
+router.get('/:id', getProductById);
+
 // SELLER: CREATE PRODUCT
 router.post(
     '/create',
     protect,
     authorize('seller', 'admin'),
     createProduct
-);
-
-// SELLER: GET MY PRODUCTS
-router.get(
-    '/my-products',
-    protect,
-    authorize('seller', 'admin'),
-    getMyProducts
 );
 
 // SELLER: UPDATE PRODUCT

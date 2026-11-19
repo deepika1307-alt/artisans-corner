@@ -1,18 +1,23 @@
 const express = require('express');
 const router = express.Router();
 
+// Order controllers
 const {
     createOrder,
     simulatePayment,
     getMyOrders
 } = require('../controllers/orderController');
 
+// Authentication middleware
 const {
     protect,
     authorize
 } = require('../middleware/authMiddleware');
 
-// Create order
+// ========================================
+// CREATE ORDER
+// ========================================
+
 router.post(
     '/',
     protect,
@@ -20,8 +25,11 @@ router.post(
     createOrder
 );
 
-// Simulated payment (development demo only)
-// Enable simulated payments only during development
+// ========================================
+// SIMULATED PAYMENT
+// DEVELOPMENT ONLY
+// ========================================
+
 if (process.env.NODE_ENV !== 'production') {
     router.post(
         '/:orderId/simulate-payment',
@@ -31,7 +39,10 @@ if (process.env.NODE_ENV !== 'production') {
     );
 }
 
-// Get buyer orders
+// ========================================
+// GET BUYER ORDERS
+// ========================================
+
 router.get(
     '/my-orders',
     protect,

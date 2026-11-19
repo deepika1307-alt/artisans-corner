@@ -13,6 +13,7 @@ import Cart from './pages/cart';
 import Checkout from './pages/Checkout';
 import MyOrders from './pages/MyOrders';
 import ProductReviews from './pages/ProductReviews';
+import ProductDetails from './pages/ProductDetails';
 
 import { useAuth } from './context/AuthContext';
 
@@ -54,11 +55,14 @@ function App() {
             <Navbar />
 
             <Routes>
+                {/* Home */}
                 <Route path="/" element={<Home />} />
 
+                {/* Authentication */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
 
+                {/* Seller Onboarding */}
                 <Route
                     path="/become-seller"
                     element={
@@ -68,6 +72,7 @@ function App() {
                     }
                 />
 
+                {/* Vendor Dashboard */}
                 <Route
                     path="/vendor-dashboard"
                     element={
@@ -77,6 +82,7 @@ function App() {
                     }
                 />
 
+                {/* Admin Dashboard */}
                 <Route
                     path="/admin-dashboard"
                     element={
@@ -86,8 +92,10 @@ function App() {
                     }
                 />
 
+                {/* Shopping Cart */}
                 <Route path="/cart" element={<Cart />} />
 
+                {/* Checkout */}
                 <Route
                     path="/checkout"
                     element={
@@ -97,6 +105,7 @@ function App() {
                     }
                 />
 
+                {/* My Orders */}
                 <Route
                     path="/my-orders"
                     element={
@@ -106,6 +115,13 @@ function App() {
                     }
                 />
 
+                {/* Product Details */}
+                <Route
+                    path="/products/:id"
+                    element={<ProductDetails />}
+                />
+
+                {/* Product Reviews */}
                 <Route
                     path="/products/:productId/reviews"
                     element={<ProductReviews />}

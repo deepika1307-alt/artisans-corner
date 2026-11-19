@@ -48,30 +48,12 @@ const orderSchema = new mongoose.Schema(
         ],
 
         shippingAddress: {
-            fullName: {
-                type: String,
-                required: true
-            },
-            phone: {
-                type: String,
-                required: true
-            },
-            address: {
-                type: String,
-                required: true
-            },
-            city: {
-                type: String,
-                required: true
-            },
-            state: {
-                type: String,
-                required: true
-            },
-            pincode: {
-                type: String,
-                required: true
-            }
+            fullName: { type: String, required: true },
+            phone: { type: String, required: true },
+            address: { type: String, required: true },
+            city: { type: String, required: true },
+            state: { type: String, required: true },
+            pincode: { type: String, required: true }
         },
 
         totalAmount: {
@@ -84,6 +66,47 @@ const orderSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+
+        // Vendor-wise payout records
+        vendorPayouts: [
+            {
+                vendor: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    required: true
+                },
+
+                store: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'Store',
+                    required: true
+                },
+
+                subtotal: {
+                    type: Number,
+                    required: true,
+                    min: 0
+                },
+
+                commission: {
+                    type: Number,
+                    required: true,
+                    min: 0
+                },
+
+                payoutAmount: {
+                    type: Number,
+                    required: true,
+                    min: 0
+                },
+
+                payoutStatus: {
+                    type: String,
+                    enum: ['pending', 'recorded'],
+                    default: 'pending'
+                }
+            }
+        ],
 
         paymentStatus: {
             type: String,

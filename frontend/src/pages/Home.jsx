@@ -43,7 +43,9 @@ function Home() {
         const fetchProducts = async () => {
             try {
                 const response = await API.get('/products');
+
                 setProducts(response.data.products || []);
+
             } catch (err) {
                 setError(
                     err.response?.data?.message ||
@@ -122,6 +124,7 @@ function Home() {
 
             </section>
 
+
             {/* CATEGORIES */}
 
             <section className="categories-section">
@@ -160,6 +163,7 @@ function Home() {
 
             </section>
 
+
             {/* FEATURED PRODUCTS */}
 
             <section className="featured-section" id="explore">
@@ -192,11 +196,17 @@ function Home() {
 
                 </div>
 
+
+                {/* CART SUCCESS MESSAGE */}
+
                 {message && (
                     <div className="cart-success-message">
                         {message}
                     </div>
                 )}
+
+
+                {/* LOADING, ERROR AND PRODUCTS */}
 
                 {loading ? (
 
@@ -253,6 +263,8 @@ function Home() {
                                 key={product._id}
                             >
 
+                                {/* PRODUCT IMAGE */}
+
                                 <div className="product-image">
 
                                     {product.images?.[0] ? (
@@ -272,6 +284,9 @@ function Home() {
 
                                 </div>
 
+
+                                {/* PRODUCT INFORMATION */}
+
                                 <div className="product-info">
 
                                     <p className="product-category">
@@ -286,6 +301,9 @@ function Home() {
                                         {product.description}
                                     </p>
 
+
+                                    {/* PRICE AND STOCK */}
+
                                     <div className="product-bottom">
 
                                         <span className="product-price">
@@ -298,11 +316,27 @@ function Home() {
 
                                     </div>
 
+
+                                    {/* STORE NAME */}
+
                                     {product.store?.storeName && (
                                         <p className="product-store">
                                             By {product.store.storeName}
                                         </p>
                                     )}
+
+
+                                    {/* VIEW PRODUCT DETAILS */}
+
+                                    <Link
+                                        to={`/products/${product._id}`}
+                                        className="view-details-button"
+                                    >
+                                        View Details
+                                    </Link>
+
+
+                                    {/* ADD TO CART */}
 
                                     <button
                                         type="button"
@@ -314,6 +348,9 @@ function Home() {
                                             ? 'Out of Stock'
                                             : 'Add to Cart 🛒'}
                                     </button>
+
+
+                                    {/* VIEW REVIEWS */}
 
                                     <Link
                                         to={`/products/${product._id}/reviews`}
@@ -333,6 +370,7 @@ function Home() {
                 )}
 
             </section>
+
 
             {/* SELLER SECTION */}
 

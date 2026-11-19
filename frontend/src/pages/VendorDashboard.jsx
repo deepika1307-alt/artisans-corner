@@ -7,6 +7,16 @@ function VendorDashboard() {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
+    const [analytics, setAnalytics] = useState({
+        totalOrders: 0,
+        totalSales: 0,
+        totalCommission: 0,
+        totalEarnings: 0,
+        salesHistory: []
+    });
+
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
     const [showForm, setShowForm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
@@ -40,8 +50,35 @@ function VendorDashboard() {
         }
     };
 
+    // FETCH VENDOR ANALYTICS
+    const fetchAnalytics = async () => {
+        try {
+            setAnalyticsLoading(true);
+
+            const response = await API.get('/analytics/vendor');
+
+            setAnalytics(response.data.analytics || {
+                totalOrders: 0,
+                totalSales: 0,
+                totalCommission: 0,
+                totalEarnings: 0,
+                salesHistory: []
+            });
+        } catch (err) {
+            console.error('Analytics Error:', err);
+
+            setError(
+                err.response?.data?.message ||
+                'Unable to load sales analytics.'
+            );
+        } finally {
+            setAnalyticsLoading(false);
+        }
+    };
+
     useEffect(() => {
         fetchProducts();
+        fetchAnalytics();
     }, []);
 
     // HANDLE INPUT CHANGES
@@ -107,7 +144,7 @@ function VendorDashboard() {
 
             let imageUrl = null;
 
-            // UPLOAD NEW IMAGE IF SELECTED
+            // UPLOAD NEW IMAGE
             if (image) {
                 const imageData = new FormData();
 
@@ -130,7 +167,7 @@ function VendorDashboard() {
                 stock: Number(formData.stock)
             };
 
-            // PRESERVE EXISTING IMAGE IF NO NEW IMAGE IS SELECTED
+            // PRESERVE EXISTING IMAGE
             if (editingProduct) {
                 const existingProduct = products.find(
                     product => product._id === editingProduct
@@ -228,6 +265,12 @@ function VendorDashboard() {
         }
     };
 
+    // REFRESH DASHBOARD
+    const refreshDashboard = () => {
+        fetchProducts();
+        fetchAnalytics();
+    };
+
     // DASHBOARD STATISTICS
     const totalProducts = products.length;
 
@@ -244,6 +287,12 @@ function VendorDashboard() {
             Number(product.stock || 0),
         0
     );
+
+    const formatCurrency = (amount) =>
+        `₹${Number(amount || 0).toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        })}`;
 
     return (
         <div className="dashboard-page">
@@ -266,7 +315,7 @@ function VendorDashboard() {
                 <span className="dashboard-flower">✿</span>
             </div>
 
-            {/* STATISTICS */}
+            {/* INVENTORY STATISTICS */}
 
             <section className="dashboard-stats">
 
@@ -284,11 +333,135 @@ function VendorDashboard() {
 
                 <div className="stat-card">
                     <span>Inventory Value</span>
-                    <h2>
-                        ₹{totalValue.toLocaleString('en-IN')}
-                    </h2>
+                    <h2>{formatCurrency(totalValue)}</h2>
                     <p>Price × available stock</p>
                 </div>
+
+            </section>
+
+            {/* SALES ANALYTICS */}
+
+            <section className="dashboard-products">
+
+                <div className="dashboard-section-heading">
+                    <div>
+                        <h2>Sales Analytics</h2>
+                        <p>Your sales and earnings overview.</p>
+                    </div>
+
+                    <button
+                        className="refresh-button"
+                        onClick={refreshDashboard}
+                    >
+                        ↻ Refresh Analytics
+                    </button>
+                </div>
+
+                {analyticsLoading ? (
+                    <div className="dashboard-message">
+                        Loading sales analytics...
+                    </div>
+                ) : (
+                    <>
+                        <div className="dashboard-stats">
+
+                            <div className="stat-card">
+                                <span>Total Paid Orders</span>
+                                <h2>{analytics.totalOrders}</h2>
+                                <p>Orders containing your products</p>
+                            </div>
+
+                            <div className="stat-card">
+                                <span>Total Sales</span>
+                                <h2>
+                                    {formatCurrency(analytics.totalSales)}
+                                </h2>
+                                <p>Gross sales amount</p>
+                            </div>
+
+                            <div className="stat-card">
+                                <span>Platform Commission</span>
+                                <h2>
+                                    {formatCurrency(analytics.totalCommission)}
+                                </h2>
+                                <p>5% marketplace commission</p>
+                            </div>
+
+                            <div className="stat-card">
+                                <span>Your Earnings</span>
+                                <h2>
+                                    {formatCurrency(analytics.totalEarnings)}
+                                </h2>
+                                <p>95% vendor share</p>
+                            </div>
+
+                        </div>
+
+                        <div className="dashboard-section-heading">
+                            <div>
+                                <h2>Sales History</h2>
+                                <p>Details of your paid orders.</p>
+                            </div>
+                        </div>
+
+                        {analytics.salesHistory.length === 0 ? (
+                            <div className="dashboard-empty">
+                                <span>✿</span>
+                                <h3>No sales yet!</h3>
+                                <p>
+                                    Your paid order history will appear here.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="dashboard-table-wrapper">
+
+                                <table className="product-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Order ID</th>
+                                            <th>Date</th>
+                                            <th>Sales</th>
+                                            <th>Commission</th>
+                                            <th>Earnings</th>
+                                            <th>Payout Status</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        {analytics.salesHistory.map((sale) => (
+                                            <tr key={sale.orderId}>
+                                                <td>
+                                                    {sale.orderId.slice(-6).toUpperCase()}
+                                                </td>
+
+                                                <td>
+                                                    {new Date(sale.date).toLocaleDateString('en-IN')}
+                                                </td>
+
+                                                <td>
+                                                    {formatCurrency(sale.subtotal)}
+                                                </td>
+
+                                                <td>
+                                                    {formatCurrency(sale.commission)}
+                                                </td>
+
+                                                <td>
+                                                    {formatCurrency(sale.earnings)}
+                                                </td>
+
+                                                <td>
+                                                    {sale.payoutStatus}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        )}
+                    </>
+                )}
 
             </section>
 
@@ -300,7 +473,6 @@ function VendorDashboard() {
 
                     <div>
                         <h2>Your Products</h2>
-
                         <p>
                             Manage your handmade products.
                         </p>
@@ -484,7 +656,6 @@ function VendorDashboard() {
                                     Selected: {image.name}
                                 </p>
                             )}
-
                         </div>
 
                         <div className="product-form-actions">
@@ -578,7 +749,7 @@ function VendorDashboard() {
                                         <td>{product.category}</td>
 
                                         <td>
-                                            ₹{Number(product.price).toLocaleString('en-IN')}
+                                            {formatCurrency(product.price)}
                                         </td>
 
                                         <td>{product.stock}</td>

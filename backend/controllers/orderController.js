@@ -26,12 +26,8 @@ const createOrder = async (req, res) => {
         }
 
         const requiredFields = [
-            'fullName',
-            'phone',
-            'address',
-            'city',
-            'state',
-            'pincode'
+            'fullName', 'phone', 'address',
+            'city', 'state', 'pincode'
         ];
 
         for (const field of requiredFields) {
@@ -74,11 +70,12 @@ const createOrder = async (req, res) => {
 
         await session.withTransaction(async () => {
             const orderItems = [];
+            const vendorMap = new Map();
+
             let totalAmount = 0;
 
             for (const [productId, quantity] of quantities) {
 
-                // ATOMIC STOCK DEDUCTION
                 const product = await Product.findOneAndUpdate(
                     {
                         _id: productId,
@@ -105,6 +102,10 @@ const createOrder = async (req, res) => {
                     throw new Error('Invalid product price.');
                 }
 
+                if (!product.vendor || !product.store) {
+                    throw new Error('Product vendor or store is missing.');
+                }
+
                 orderItems.push({
                     product: product._id,
                     vendor: product.vendor,
@@ -114,20 +115,60 @@ const createOrder = async (req, res) => {
                     quantity
                 });
 
-                totalAmount += price * quantity;
+                const subtotal = price * quantity;
+                totalAmount += subtotal;
+
+                // GROUP PRODUCTS BY VENDOR AND STORE
+                const key = `${product.vendor}_${product.store}`;
+
+                if (!vendorMap.has(key)) {
+                    vendorMap.set(key, {
+                        vendor: product.vendor,
+                        store: product.store,
+                        subtotal: 0
+                    });
+                }
+
+                vendorMap.get(key).subtotal += subtotal;
             }
 
-            const commission = Number(
-                (totalAmount * 0.05).toFixed(2)
-            );
+            // CALCULATE VENDOR-WISE PAYOUTS
+            const vendorPayouts = [];
+            let totalCommission = 0;
+
+            for (const vendorData of vendorMap.values()) {
+                const subtotal = Number(
+                    vendorData.subtotal.toFixed(2)
+                );
+
+                const vendorCommission = Number(
+                    (subtotal * 0.05).toFixed(2)
+                );
+
+                const payoutAmount = Number(
+                    (subtotal - vendorCommission).toFixed(2)
+                );
+
+                totalCommission += vendorCommission;
+
+                vendorPayouts.push({
+                    vendor: vendorData.vendor,
+                    store: vendorData.store,
+                    subtotal,
+                    commission: vendorCommission,
+                    payoutAmount,
+                    payoutStatus: 'pending'
+                });
+            }
 
             const orders = await Order.create(
                 [{
                     buyer: buyerId,
                     items: orderItems,
                     shippingAddress,
-                    totalAmount,
-                    commission,
+                    totalAmount: Number(totalAmount.toFixed(2)),
+                    commission: Number(totalCommission.toFixed(2)),
+                    vendorPayouts,
                     paymentStatus: 'pending',
                     orderStatus: 'placed'
                 }],
@@ -166,7 +207,7 @@ const createOrder = async (req, res) => {
 
 // ========================================
 // SIMULATED PAYMENT
-// DEMO PURPOSES ONLY
+// DEVELOPMENT DEMO ONLY
 // ========================================
 
 const simulatePayment = async (req, res) => {
@@ -212,11 +253,17 @@ const simulatePayment = async (req, res) => {
         // DEMO ONLY: No actual money is transferred.
         order.paymentStatus = 'paid';
 
+        // Record vendor payout calculations.
+        order.vendorPayouts.forEach((payout) => {
+            payout.payoutStatus = 'recorded';
+        });
+
         await order.save();
 
         return res.status(200).json({
             message: 'Demo payment successful!',
             paymentStatus: order.paymentStatus,
+            vendorPayouts: order.vendorPayouts,
             order
         });
 

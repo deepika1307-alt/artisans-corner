@@ -43,21 +43,34 @@ function Checkout() {
         quantity: item.quantity
       }));
 
-      const response = await API.post('/orders', {
+      // Step 1: Create the order
+      const orderResponse = await API.post('/orders', {
         items: orderItems,
         shippingAddress: formData
       });
 
+      const order = orderResponse.data.order || orderResponse.data;
+      const orderId = order._id;
+
+      if (!orderId) {
+        throw new Error('Order was created, but its ID was not returned.');
+      }
+
+      // Step 2: Process demo payment
+      await API.post(`/orders/${orderId}/simulate-payment`);
+
+      // Step 3: Clear cart only after successful demo payment
       clearCart();
 
-      alert('Order placed successfully!');
+      alert('Demo payment successful! Your order is confirmed.');
 
       navigate('/my-orders');
 
     } catch (error) {
       setError(
         error.response?.data?.message ||
-        'Unable to place your order. Please try again.'
+        error.message ||
+        'Unable to complete your order. Please try again.'
       );
     } finally {
       setLoading(false);
@@ -81,7 +94,6 @@ function Checkout() {
       <p>Complete your shipping details to place your order.</p>
 
       <div className="checkout-container">
-
         <form className="checkout-form" onSubmit={handleSubmit}>
           <h2>Shipping Address</h2>
 
@@ -151,7 +163,7 @@ function Checkout() {
           />
 
           <button type="submit" disabled={loading}>
-            {loading ? 'Placing Order...' : 'Place Order'}
+            {loading ? 'Processing...' : 'Place Order & Pay (Demo)'}
           </button>
         </form>
 
@@ -177,10 +189,9 @@ function Checkout() {
           </div>
 
           <p className="payment-note">
-            Payment will be available in the next step.
+            Demo payment only. No real money will be charged.
           </p>
         </div>
-
       </div>
     </div>
   );

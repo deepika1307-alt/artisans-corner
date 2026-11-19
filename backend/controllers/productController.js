@@ -73,6 +73,7 @@ const createProduct = async (req, res) => {
     }
 };
 
+
 // GET MY PRODUCTS
 const getMyProducts = async (req, res) => {
     try {
@@ -94,6 +95,7 @@ const getMyProducts = async (req, res) => {
         });
     }
 };
+
 
 // GET ALL PUBLIC PRODUCTS
 const getAllProducts = async (req, res) => {
@@ -118,6 +120,42 @@ const getAllProducts = async (req, res) => {
         });
     }
 };
+
+
+// GET SINGLE PRODUCT BY ID
+const getProductById = async (req, res) => {
+    try {
+        const product = await Product.findOne({
+            _id: req.params.id,
+            stock: { $gt: 0 }
+        }).populate('store', 'storeName logo');
+
+        if (!product) {
+            return res.status(404).json({
+                message: "Product not found or currently unavailable."
+            });
+        }
+
+        res.status(200).json({
+            message: "Product details fetched successfully!",
+            product
+        });
+
+    } catch (error) {
+        console.error("Get Product By ID Error:", error);
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({
+                message: "Invalid product ID."
+            });
+        }
+
+        res.status(500).json({
+            message: "Unable to fetch product details."
+        });
+    }
+};
+
 
 // UPDATE PRODUCT
 const updateProduct = async (req, res) => {
@@ -178,6 +216,7 @@ const updateProduct = async (req, res) => {
     }
 };
 
+
 // DELETE PRODUCT
 const deleteProduct = async (req, res) => {
     try {
@@ -205,10 +244,12 @@ const deleteProduct = async (req, res) => {
     }
 };
 
+
 module.exports = {
     createProduct,
     getMyProducts,
     getAllProducts,
+    getProductById,
     updateProduct,
     deleteProduct
 };
