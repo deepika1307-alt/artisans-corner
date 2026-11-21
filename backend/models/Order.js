@@ -66,6 +66,10 @@ const orderSchema = new mongoose.Schema(
             type: Number,
             default: 0
         },
+        stripePaymentIntentId: {
+    type: String,
+    default: null
+},
 
         // Vendor-wise payout records
         vendorPayouts: [

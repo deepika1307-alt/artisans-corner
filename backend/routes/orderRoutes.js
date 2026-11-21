@@ -4,6 +4,7 @@ const router = express.Router();
 // Order controllers
 const {
     createOrder,
+    createDemoOrder,
     simulatePayment,
     getMyOrders
 } = require('../controllers/orderController');
@@ -15,7 +16,7 @@ const {
 } = require('../middleware/authMiddleware');
 
 // ========================================
-// CREATE ORDER
+// CREATE STRIPE ORDER
 // ========================================
 
 router.post(
@@ -26,11 +27,26 @@ router.post(
 );
 
 // ========================================
-// SIMULATED PAYMENT
-// DEVELOPMENT ONLY
+// CREATE DEMO ORDER
+// NO REAL PAYMENT
 // ========================================
 
-if (process.env.NODE_ENV !== 'production') {
+router.post(
+    '/demo',
+    protect,
+    authorize('buyer'),
+    createDemoOrder
+);
+
+// ========================================
+// SIMULATED PAYMENT
+// DEVELOPMENT OR ENABLED DEMO MODE
+// ========================================
+
+if (
+    process.env.NODE_ENV !== 'production' ||
+    process.env.DEMO_PAYMENTS_ENABLED === 'true'
+) {
     router.post(
         '/:orderId/simulate-payment',
         protect,

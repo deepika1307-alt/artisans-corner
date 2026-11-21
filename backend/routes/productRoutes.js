@@ -15,11 +15,10 @@ const {
     authorize
 } = require('../middleware/authMiddleware');
 
-// PUBLIC: GET ALL PRODUCTS
+// GET ALL PRODUCTS (Public)
 router.get('/', getAllProducts);
 
-// SELLER: GET MY PRODUCTS
-// Keep this BEFORE /:id
+// GET MY PRODUCTS (Seller) - MUST be before /:id
 router.get(
     '/my-products',
     protect,
@@ -27,10 +26,7 @@ router.get(
     getMyProducts
 );
 
-// PUBLIC: GET SINGLE PRODUCT
-router.get('/:id', getProductById);
-
-// SELLER: CREATE PRODUCT
+// CREATE PRODUCT (Seller)
 router.post(
     '/create',
     protect,
@@ -38,7 +34,10 @@ router.post(
     createProduct
 );
 
-// SELLER: UPDATE PRODUCT
+// GET SINGLE PRODUCT (Public) - keep after specific routes
+router.get('/:id', getProductById);
+
+// UPDATE PRODUCT (Seller)
 router.put(
     '/:id',
     protect,
@@ -46,7 +45,7 @@ router.put(
     updateProduct
 );
 
-// SELLER: DELETE PRODUCT
+// DELETE PRODUCT (Seller)
 router.delete(
     '/:id',
     protect,

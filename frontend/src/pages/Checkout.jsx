@@ -1,11 +1,38 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe
+} from '@stripe/react-stripe-js';
+
+import { loadStripe } from '@stripe/stripe-js';
+
 import { useCart } from '../context/CartContext';
 import API from '../services/api';
 
-function Checkout() {
+// Demo mode is the default.
+// Stripe is enabled only when VITE_PAYMENT_MODE=stripe.
+const PAYMENT_MODE = (
+  import.meta.env.VITE_PAYMENT_MODE || 'demo'
+).toLowerCase();
+
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+
+const stripePromise = publishableKey
+  ? loadStripe(publishableKey)
+  : Promise.resolve(null);
+
+
+function CheckoutForm() {
   const { cartItems, cartTotal, clearCart } = useCart();
+
   const navigate = useNavigate();
+
+  const stripe = useStripe();
+  const elements = useElements();
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -26,6 +53,7 @@ function Checkout() {
     });
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -43,54 +71,149 @@ function Checkout() {
         quantity: item.quantity
       }));
 
-      // Step 1: Create order
-      const orderResponse = await API.post('/orders', {
-        items: orderItems,
-        shippingAddress: formData
-      });
+      // =========================
+      // DEMO PAYMENT MODE
+      // =========================
+      if (PAYMENT_MODE !== 'stripe') {
 
-      const order = orderResponse.data.order || orderResponse.data;
+        // Step 1: Create demo order
+        const demoOrderResponse = await API.post(
+          '/orders/demo',
+          {
+            items: orderItems,
+            shippingAddress: formData
+          }
+        );
 
-      if (!order._id) {
-        throw new Error('Order was created, but its ID was not returned.');
-      }
+        const order = demoOrderResponse.data.order;
 
-      // Step 2: Simulate payment only during local development
-      if (import.meta.env.DEV) {
-        await API.post(`/orders/${order._id}/simulate-payment`);
+        if (!order?._id) {
+          throw new Error(
+            'Demo order was not created successfully.'
+          );
+        }
 
-        alert('Demo payment successful! Your order is confirmed.');
-      } else {
-        // Production: No real payment integration is configured.
-        // Keep the order pending instead of marking it as paid.
+        // Step 2: Simulate demo payment
+        await API.post(
+          `/orders/${order._id}/simulate-payment`
+        );
+
+        // Step 3: Clear cart after success
+        clearCart();
 
         alert(
-          'Your order has been placed successfully! ' +
-          'Payment is currently pending. No money has been collected.'
+          'Demo order successful! No real payment was collected.'
+        );
+
+        navigate('/my-orders');
+
+        return;
+      }
+
+
+      // =========================
+      // STRIPE PAYMENT MODE
+      // =========================
+
+      if (!stripe || !elements) {
+        throw new Error(
+          'Stripe is not ready. Check your Stripe publishable key.'
         );
       }
 
-      // Step 3: Clear cart after successful order creation
+      const cardElement = elements.getElement(CardElement);
+
+      if (!cardElement) {
+        throw new Error('Card input is not available.');
+      }
+
+      // Step 1: Create PaymentIntent
+      const paymentIntentResponse = await API.post(
+        '/payments/create-payment-intent',
+        {
+          items: orderItems
+        }
+      );
+
+      const {
+        clientSecret,
+        paymentIntentId
+      } = paymentIntentResponse.data;
+
+      if (!clientSecret || !paymentIntentId) {
+        throw new Error(
+          'Payment information was not returned by the server.'
+        );
+      }
+
+      // Step 2: Confirm Stripe payment
+      const paymentResult = await stripe.confirmCardPayment(
+        clientSecret,
+        {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: formData.fullName,
+              phone: formData.phone
+            }
+          }
+        }
+      );
+
+      if (paymentResult.error) {
+        throw new Error(
+          paymentResult.error.message ||
+          'Payment failed. Please try again.'
+        );
+      }
+
+      if (
+        paymentResult.paymentIntent?.status !== 'succeeded'
+      ) {
+        throw new Error(
+          'Payment has not completed successfully.'
+        );
+      }
+
+      // Step 3: Create order after payment succeeds
+      const orderResponse = await API.post('/orders', {
+        items: orderItems,
+        shippingAddress: formData,
+        paymentIntentId
+      });
+
+      const stripeOrder = orderResponse.data.order;
+
+      if (!stripeOrder?._id) {
+        throw new Error(
+          'Payment succeeded, but order confirmation was not returned.'
+        );
+      }
+
+      // Step 4: Clear cart
       clearCart();
 
-      // Step 4: Navigate to order history
+      alert('Payment successful! Your order is confirmed.');
+
       navigate('/my-orders');
 
     } catch (error) {
       setError(
         error.response?.data?.message ||
         error.message ||
-        'Unable to complete your order. Please try again.'
+        'Unable to complete checkout. Please try again.'
       );
     } finally {
       setLoading(false);
     }
   };
 
+
   if (cartItems.length === 0) {
     return (
       <div className="checkout-empty">
         <h2>Your cart is empty!</h2>
+
         <button onClick={() => navigate('/')}>
           Continue Shopping
         </button>
@@ -98,16 +221,24 @@ function Checkout() {
     );
   }
 
+
   return (
     <div className="checkout-page">
       <h1>Checkout</h1>
-      <p>Complete your shipping details to place your order.</p>
+
+      <p>Complete your shipping details and payment.</p>
 
       <div className="checkout-container">
-        <form className="checkout-form" onSubmit={handleSubmit}>
+
+        <form
+          className="checkout-form"
+          onSubmit={handleSubmit}
+        >
           <h2>Shipping Address</h2>
 
-          {error && <p className="checkout-error">{error}</p>}
+          {error && (
+            <p className="checkout-error">{error}</p>
+          )}
 
           <label>Full Name</label>
           <input
@@ -172,26 +303,88 @@ function Checkout() {
             required
           />
 
-          <button type="submit" disabled={loading}>
-            {loading
-              ? 'Processing...'
-              : import.meta.env.DEV
-                ? 'Place Order & Pay (Demo)'
-                : 'Place Order'}
-          </button>
+
+          {/* PAYMENT SECTION */}
+
+          {PAYMENT_MODE === 'stripe' ? (
+            <>
+              <h2>Payment Details</h2>
+
+              <div className="stripe-card-input">
+                <CardElement
+                  options={{
+                    hidePostalCode: true,
+                    style: {
+                      base: {
+                        fontSize: '16px',
+                        color: '#32325d',
+                        fontFamily: 'Arial, sans-serif',
+                        '::placeholder': {
+                          color: '#aab7c4'
+                        }
+                      },
+                      invalid: {
+                        color: '#dc2626'
+                      }
+                    }
+                  }}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !stripe || !elements}
+              >
+                {loading
+                  ? 'Processing Payment...'
+                  : `Pay ₹${Number(cartTotal).toFixed(2)}`}
+              </button>
+
+              <p className="payment-note">
+                Your card details are securely handled by Stripe.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2>Demo Payment</h2>
+
+              <div className="payment-note">
+                Demo mode is enabled. No real money will be
+                collected.
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+              >
+                {loading
+                  ? 'Processing Demo Order...'
+                  : `Complete Demo Order ₹${Number(cartTotal).toFixed(2)}`}
+              </button>
+            </>
+          )}
+
         </form>
+
+
+        {/* ORDER SUMMARY */}
 
         <div className="checkout-summary">
           <h2>Order Summary</h2>
 
           {cartItems.map((item) => (
-            <div className="checkout-item" key={item._id}>
+            <div
+              className="checkout-item"
+              key={item._id}
+            >
               <span>
                 {item.productName} × {item.quantity}
               </span>
 
               <span>
-                ₹{item.price * item.quantity}
+                ₹{(
+                  item.price * item.quantity
+                ).toFixed(2)}
               </span>
             </div>
           ))}
@@ -200,17 +393,24 @@ function Checkout() {
 
           <div className="checkout-total">
             <strong>Total Amount</strong>
-            <strong>₹{cartTotal}</strong>
-          </div>
 
-          <p className="payment-note">
-            {import.meta.env.DEV
-              ? 'Demo payment only. No real money will be charged.'
-              : 'Payment integration is not available in this demo. Orders will remain pending.'}
-          </p>
+            <strong>
+              ₹{Number(cartTotal).toFixed(2)}
+            </strong>
+          </div>
         </div>
+
       </div>
     </div>
+  );
+}
+
+
+function Checkout() {
+  return (
+    <Elements stripe={stripePromise}>
+      <CheckoutForm />
+    </Elements>
   );
 }
 

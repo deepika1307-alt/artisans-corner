@@ -11,6 +11,7 @@ const imageRoutes = require('./routes/imageRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
+const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/images', imageRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // HOME ROUTE
 app.get('/', (req, res) => {
