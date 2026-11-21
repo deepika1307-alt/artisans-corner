@@ -2,6 +2,12 @@
 
 A multi-vendor e-commerce marketplace for handmade products, connecting talented artisans with customers who appreciate unique, handcrafted goods.
 
+## 🌐 Live Demo
+
+- **Frontend:** https://artisans-corner-1.onrender.com
+- **Backend API:** https://artisans-corner-wowq.onrender.com
+- **GitHub Repository:** https://github.com/deepika1307-alt/artisans-corner
+
 ## 📌 Project Overview
 
 Artisan's Corner is a full-stack e-commerce web application where vendors can create their own stores, manage handmade products, and track their sales. Buyers can explore products, add items to their cart, place orders, and review products after purchasing them.
@@ -11,12 +17,14 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 ## ✨ Features
 
 ### 👤 User Authentication
+
 - User registration and login.
 - JWT-based authentication.
 - Role-based access control.
 - Support for Buyer, Seller, and Admin roles.
 
 ### 🛍️ Buyer Features
+
 - Browse available handmade products.
 - View individual product details.
 - Add products to the shopping cart.
@@ -27,6 +35,7 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 - Submit product reviews after a verified purchase.
 
 ### 🏪 Vendor Features
+
 - Vendor onboarding and store creation.
 - Create, update, and delete products.
 - Upload product images using Cloudinary.
@@ -35,12 +44,14 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 - Track sales history and total earnings.
 
 ### ⭐ Product Reviews
+
 - Submit ratings from 1 to 5 stars.
 - Add written reviews.
 - Verified-purchase validation.
 - Display customer reviews.
 
 ### 👨‍💼 Admin Features
+
 - Admin dashboard.
 - View total users and vendors.
 - Monitor stores and products.
@@ -49,16 +60,20 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 - Track total sales and platform commission.
 
 ### 📦 Order Management
+
 - Create orders.
 - Store shipping information.
 - Track payment and order status.
 - Calculate a 5% platform commission and 95% vendor payout.
 
-**Note:** The current local demo uses simulated payment processing. It does not charge real money or perform actual vendor transfers.
+**Payment Note:** The application currently uses Demo Payment Mode. Checkout and order placement have been tested using simulated payments. No real money is charged, and actual vendor payouts are not performed.
+
+Stripe integration code is included, but real Stripe payment processing has not been verified.
 
 ## 🛠️ Technology Stack
 
 ### Frontend
+
 - React.js
 - Vite
 - React Router
@@ -68,6 +83,7 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 - localStorage
 
 ### Backend
+
 - Node.js
 - Express.js
 - MongoDB
@@ -77,6 +93,7 @@ The platform also includes an admin dashboard for monitoring users, vendors, pro
 - Cloudinary
 
 ### Development Tools
+
 - Visual Studio Code
 - Postman
 - Git
@@ -93,7 +110,6 @@ artisans-corner/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
-│   ├── .env
 │   └── server.js
 │
 ├── frontend/
@@ -126,7 +142,7 @@ The application uses MongoDB with the following main models:
 
 ## 📊 Database Schema
 
-![Artisan's Corner Database Schema](docs/artisans_corner_database_schema.png)
+![Artisan's Corner Database Schema](doc/artisans_corner_database_schema.png)
 
 ## ⚙️ Installation and Setup
 
@@ -168,6 +184,7 @@ CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 NODE_ENV=development
 FRONTEND_URL=your_frontend_url
+DEMO_PAYMENTS_ENABLED=true
 ```
 
 Start the backend:
@@ -189,6 +206,7 @@ Create a `.env` file in the frontend folder:
 
 ```env
 VITE_API_URL=http://localhost:5000/api
+VITE_PAYMENT_MODE=demo
 ```
 
 Start the frontend:
@@ -208,7 +226,7 @@ The platform follows this commission structure:
 | Platform Commission | 5% |
 | Vendor Payout | 95% |
 
-The commission and vendor payout amounts are calculated for each vendor's share of an order.
+The commission and vendor payout amounts are calculated for each vendor's share of an order. Actual vendor transfers are not performed in Demo Payment Mode.
 
 ## 🔐 Security
 
@@ -230,15 +248,18 @@ The application is deployed using:
 - MongoDB Atlas for database hosting.
 - Cloudinary for product image storage.
 
-Live Application: *Add your deployed frontend URL here.*
+**Live Application:** https://artisans-corner-1.onrender.com
+
+**Backend API:** https://artisans-corner-wowq.onrender.com
 
 ## 👩‍💻 Developer
 
 Developed as an internship project.
 
-**Project Name:** Artisan's Corner
-**Category:**Full-Stack Web Development
+**Project Name:** Artisan's Corner  
+**Category:** Full-Stack Web Development  
 **GitHub Repository:** https://github.com/deepika1307-alt/artisans-corner
 
 ---
+
 *Artisan's Corner — Bringing handmade creativity closer to everyone.*
